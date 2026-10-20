@@ -3,647 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StateFlow — Resilient State Machine & Lifecycle Engine</title>
-    <meta name="description" content="Production-grade event-driven workflow engine with deterministic transitions, optimistic locking, and AI-SDLC architectural guardrails.">
+    <title>StateFlow — Minimal Order Lifecycle</title>
+    <meta name="description" content="Clean, minimal order lifecycle and stateflow management dashboard.">
     
-    <!-- Typography: Inter & JetBrains Mono -->
+    <!-- Clean Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- ================= TOP NAVIGATION BAR ================= -->
-        <header class="navbar">
-            <div class="nav-left">
-                <div class="brand-cluster">
-                    <div class="brand-symbol">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                        </svg>
-                    </div>
-                    <div class="brand-details">
-                        <div class="brand-title-wrap">
-                            <span class="brand-title">StateFlow</span>
-                            <span class="tag-version">v2.1</span>
-                        </div>
-                        <span class="breadcrumb-item">engine / order-lifecycle</span>
-                    </div>
+    <div class="layout-container">
+        
+        <!-- Minimal Navbar -->
+        <header class="site-header">
+            <div class="header-inner">
+                <div class="header-brand">
+                    <span class="brand-dot"></span>
+                    <span class="brand-title">StateFlow</span>
+                    <span class="brand-badge">Engine v2.1</span>
                 </div>
-            </div>
 
-            <div class="nav-center">
-                <div class="system-status-pill">
-                    <span class="pulse-beacon"></span>
-                    <span class="status-text">ENGINE ONLINE</span>
-                    <span class="status-divider">|</span>
-                    <span class="status-metric" id="hdr-active-count">0 Active</span>
+                <div class="header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="triggerAutoExpire()" title="Scan for stale pending orders">
+                        <span>Auto-Expire Stale</span>
+                        <span class="bubble-count hidden" id="stale-count">0</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="openNewOrderModal()">
+                        <span>+ New Order</span>
+                    </button>
                 </div>
-            </div>
-
-            <div class="nav-right">
-                <div class="guardrail-badge" title="Automated architectural invariants verified by AI-SDLC policy gate">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                    <span>23/23 Invariants</span>
-                </div>
-                
-                <button class="nav-btn" id="btn-expire-stale-orders" onclick="triggerAutoExpire()" title="Scan and expire stale PAYMENT_PENDING orders">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    <span>Expire Stale</span>
-                    <span class="counter-bubble hidden" id="stale-order-count">0</span>
-                </button>
-
-                <button class="nav-btn icon-only" onclick="refreshDashboardData()" title="Synchronize state from database">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="23 4 23 10 17 10"></polyline>
-                        <polyline points="1 20 1 14 7 14"></polyline>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                    </svg>
-                </button>
             </div>
         </header>
 
-        <!-- ================= TELEMETRY METRIC STRIP ================= -->
-        <section class="telemetry-bar">
-            <div class="telemetry-cell">
-                <div class="cell-label">
-                    <span>ACTIVE GROSS VOLUME</span>
-                    <span class="cell-tag">USD</span>
-                </div>
-                <div class="cell-body">
-                    <span class="cell-value" id="val-gmv">$0.00</span>
-                    <span class="cell-sparkline-wrap">
-                        <svg width="64" height="20" viewBox="0 0 64 20" class="sparkline" id="sparkline-gmv">
-                            <path d="M 0 16 Q 16 12, 32 14 T 64 4" fill="none" stroke="#6366f1" stroke-width="1.5" />
-                        </svg>
-                    </span>
-                </div>
-            </div>
-
-            <div class="telemetry-cell">
-                <div class="cell-label">
-                    <span>LIFECYCLE INSTANCES</span>
-                    <span class="cell-tag" id="val-order-breakdown">0 total</span>
-                </div>
-                <div class="cell-body">
-                    <span class="cell-value" id="val-total-orders">0</span>
-                    <div class="state-mini-dots" id="state-mini-dots">
-                        <!-- State dots populated dynamically -->
-                    </div>
-                </div>
-            </div>
-
-            <div class="telemetry-cell">
-                <div class="cell-label">
-                    <span>SETTLEMENT RATE</span>
-                    <span class="cell-tag">Fulfillment</span>
-                </div>
-                <div class="cell-body">
-                    <span class="cell-value text-emerald" id="val-settlement-rate">100.0%</span>
-                    <span class="cell-sub" id="val-settlement-detail">0 / 0</span>
-                </div>
-            </div>
-
-            <div class="telemetry-cell">
-                <div class="cell-label">
-                    <span>REFUNDED VOLUME</span>
-                    <span class="cell-tag">ADR-004</span>
-                </div>
-                <div class="cell-body">
-                    <span class="cell-value text-amber" id="val-refunded-volume">$0.00</span>
-                    <span class="cell-sub" id="val-refunded-detail">0 partials</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- ================= WORKSPACE WORKSTATION ================= -->
-        <main class="workstation-layout">
+        <!-- Main Clean Workspace (Centered Max Width) -->
+        <main class="main-content">
             
-            <!-- ====== LEFT WORKBENCH: Simulator & State Controls ====== -->
-            <aside class="workbench-panel" id="panel-workbench">
+            <!-- Active Order Hero Card -->
+            <section class="order-card" id="active-order-section">
                 
-                <!-- Mode Switcher Header -->
-                <div class="workbench-tabs">
-                    <button class="wb-tab active" id="tab-simulator" onclick="switchWorkbenchMode('simulator')">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        <span>Simulator</span>
-                    </button>
-                    <button class="wb-tab" id="tab-chaos" onclick="switchWorkbenchMode('chaos')">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                        </svg>
-                        <span>ADR Invariants</span>
-                    </button>
+                <!-- Order Top Row: ID & Status -->
+                <div class="order-card-header">
+                    <div class="order-identity">
+                        <span class="order-id-label">ORDER</span>
+                        <span class="order-id-code font-mono" id="disp-order-id">—</span>
+                        <button class="btn-icon-subtle" onclick="copyOrderId()" title="Copy Order ID">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="order-status-wrap">
+                        <span class="version-tag font-mono" id="disp-version">v1</span>
+                        <span class="status-pill" id="disp-status">CREATED</span>
+                    </div>
                 </div>
 
-                <!-- SIMULATOR VIEW -->
-                <div class="wb-content" id="wb-view-simulator">
+                <!-- Financial Highlight -->
+                <div class="order-amount-row">
+                    <div class="amount-main">
+                        <span class="amount-number font-mono" id="disp-amount">$0.00</span>
+                        <span class="amount-currency font-mono" id="disp-currency">USD</span>
+                    </div>
+                    <div class="amount-meta" id="disp-refund-sub">
+                        <span class="customer-tag" id="disp-customer">cust_demo</span>
+                    </div>
+                </div>
+
+                <!-- Clean Lifecycle Stepper -->
+                <div class="lifecycle-stepper" id="lifecycle-stepper">
+                    <div class="step-item" id="step-CREATED" data-step="CREATED">
+                        <div class="step-circle">1</div>
+                        <span class="step-name">Created</span>
+                    </div>
+                    <div class="step-line" id="line-1"></div>
                     
-                    <!-- Presets Selector -->
-                    <div class="control-group">
-                        <div class="group-header">
-                            <span class="group-title">QUICK TEMPLATES</span>
-                        </div>
-                        <div class="preset-grid">
-                            <button class="btn-preset" onclick="applyPreset('ecommerce')">
-                                <span class="preset-name">E-Commerce</span>
-                                <span class="preset-val">$120.00</span>
-                            </button>
-                            <button class="btn-preset" onclick="applyPreset('saas')">
-                                <span class="preset-name">Subscription</span>
-                                <span class="preset-val">$49.00</span>
-                            </button>
-                            <button class="btn-preset" onclick="applyPreset('micropay')">
-                                <span class="preset-name">Micro-Txn</span>
-                                <span class="preset-val">$8.50</span>
-                            </button>
-                            <button class="btn-preset" onclick="applyPreset('enterprise')">
-                                <span class="preset-name">Enterprise</span>
-                                <span class="preset-val">$2,500.00</span>
-                            </button>
-                        </div>
+                    <div class="step-item" id="step-PAYMENT_PENDING" data-step="PAYMENT_PENDING">
+                        <div class="step-circle">2</div>
+                        <span class="step-name">Pending</span>
                     </div>
-
-                    <!-- Spawn Form -->
-                    <div class="control-group" id="group-spawn-order">
-                        <div class="group-header">
-                            <span class="group-title">NEW ORDER PAYLOAD</span>
-                            <span class="group-sub">State: CREATED</span>
-                        </div>
-                        <form id="form-create-order" onsubmit="event.preventDefault(); createOrder();">
-                            <div class="form-row">
-                                <div class="form-col flex-2">
-                                    <label class="input-label" for="inp-customer">Customer ID</label>
-                                    <input type="text" id="inp-customer" class="field-input" placeholder="cust_dev_01" value="cust_alpha" required>
-                                </div>
-                                <div class="form-col flex-1">
-                                    <label class="input-label" for="inp-currency">Currency</label>
-                                    <input type="text" id="inp-currency" class="field-input text-upper font-mono" value="USD" maxlength="3" required>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-col flex-1">
-                                    <div class="label-with-addon">
-                                        <label class="input-label" for="inp-amount">Amount (Integer Cents)</label>
-                                        <span class="addon-text" id="lbl-calc-amount">$120.00</span>
-                                    </div>
-                                    <input type="number" id="inp-amount" class="field-input font-mono" value="12000" min="1" step="1" required>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn-action primary" id="btn-spawn-order">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                </svg>
-                                <span>Create Order Instance</span>
-                            </button>
-                        </form>
+                    <div class="step-line" id="line-2"></div>
+                    
+                    <div class="step-item" id="step-PAID" data-step="PAID">
+                        <div class="step-circle">3</div>
+                        <span class="step-name">Paid</span>
                     </div>
-
-                    <!-- Active Order Control Deck -->
-                    <div class="active-deck-card hidden" id="card-active-order">
-                        <div class="deck-top-bar">
-                            <div class="deck-id-block">
-                                <span class="deck-caption">ACTIVE INSTANCE</span>
-                                <div class="deck-id-row">
-                                    <span class="deck-order-id font-mono" id="lbl-active-order-id">—</span>
-                                    <button class="btn-copy" onclick="copyActiveOrderId()" title="Copy Order ID">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="deck-state-tag-wrap">
-                                <span class="tag-version-pill font-mono" id="lbl-active-version">v1</span>
-                                <span class="tag-state-pill" id="lbl-active-state">CREATED</span>
-                            </div>
-                        </div>
-
-                        <!-- Financial Scrubber -->
-                        <div class="financial-hud">
-                            <div class="hud-row">
-                                <div>
-                                    <span class="hud-label">TOTAL</span>
-                                    <span class="hud-val font-mono" id="lbl-hud-total">$0.00</span>
-                                </div>
-                                <div class="text-right">
-                                    <span class="hud-label">REFUNDED</span>
-                                    <span class="hud-val font-mono text-amber" id="lbl-hud-refunded">$0.00</span>
-                                </div>
-                            </div>
-                            <div class="hud-progress-track">
-                                <div class="hud-progress-bar" id="hud-progress-bar" style="width: 0%;"></div>
-                            </div>
-                            <div class="hud-remaining-row">
-                                <span class="hud-sub">Unpaid / Unrefunded:</span>
-                                <span class="hud-sub font-mono" id="lbl-hud-remaining">$0.00</span>
-                            </div>
-                        </div>
-
-                        <!-- State Actions -->
-                        <div class="transitions-group">
-                            <div class="group-header">
-                                <span class="group-title">VALID TRANSITIONS</span>
-                                <span class="group-sub" id="lbl-trigger-count">0 available</span>
-                            </div>
-                            
-                            <div class="action-buttons-list" id="deck-action-buttons">
-                                <!-- Populated dynamically based on allowed state matrix transitions -->
-                            </div>
-
-                            <!-- Contextual Partial Refund Drawer -->
-                            <div class="sub-drawer hidden" id="drawer-partial-refund">
-                                <div class="drawer-header">
-                                    <span class="drawer-title">Partial Refund (ADR-004)</span>
-                                    <button class="btn-drawer-close" onclick="closePartialRefundDrawer()">✕</button>
-                                </div>
-                                <div class="drawer-pct-chips">
-                                    <button type="button" class="btn-chip" onclick="setRefundPercentage(0.25)">25%</button>
-                                    <button type="button" class="btn-chip" onclick="setRefundPercentage(0.50)">50%</button>
-                                    <button type="button" class="btn-chip" onclick="setRefundPercentage(1.00)">100%</button>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-col flex-1">
-                                        <label class="input-label" for="inp-refund-amount">Refund Amount (Cents)</label>
-                                        <input type="number" id="inp-refund-amount" class="field-input font-mono" placeholder="2500" min="1">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-col flex-1">
-                                        <label class="input-label" for="inp-refund-reason">Audit Note</label>
-                                        <input type="text" id="inp-refund-reason" class="field-input" placeholder="Partial return initiated">
-                                    </div>
-                                </div>
-                                <button type="button" class="btn-action warning" onclick="submitPartialRefund()">
-                                    <span>Execute Partial Refund</span>
-                                </button>
-                            </div>
-
-                            <!-- Actor Selector -->
-                            <div class="actor-select-block">
-                                <label class="input-label" for="sel-actor-role">Initiating Principal</label>
-                                <select id="sel-actor-role" class="field-select">
-                                    <option value="customer">customer (Shopper / User)</option>
-                                    <option value="stripe_webhook">stripe_webhook (Payment Gateway)</option>
-                                    <option value="fulfillment_bot">fulfillment_bot (Warehouse Automation)</option>
-                                    <option value="support_agent">support_agent (Internal Ops)</option>
-                                    <option value="cron_worker">cron_worker (Scheduled Batch)</option>
-                                </select>
-                            </div>
-                        </div>
-
+                    <div class="step-line" id="line-3"></div>
+                    
+                    <div class="step-item" id="step-PROCESSING" data-step="PROCESSING">
+                        <div class="step-circle">4</div>
+                        <span class="step-name">Processing</span>
+                    </div>
+                    <div class="step-line" id="line-4"></div>
+                    
+                    <div class="step-item" id="step-FULFILLED" data-step="FULFILLED">
+                        <div class="step-circle">5</div>
+                        <span class="step-name">Fulfilled</span>
                     </div>
                 </div>
 
-                <!-- ADR INVARIANTS / CHAOS VIEW -->
-                <div class="wb-content hidden" id="wb-view-chaos">
-                    <div class="control-group">
-                        <div class="group-header">
-                            <span class="group-title">ADR CONFORMANCE SANDBOX</span>
+                <!-- Special State Banner (Appears if Cancelled, Expired, Refunded, Failed) -->
+                <div class="special-state-banner hidden" id="special-state-banner">
+                    <span class="banner-title" id="banner-title">Order State Notice</span>
+                    <span class="banner-desc" id="banner-desc">This order has reached a terminal exit state.</span>
+                </div>
+
+                <!-- Next Available Action Buttons -->
+                <div class="order-actions-section">
+                    <div class="actions-label-row">
+                        <span class="section-caption">AVAILABLE ACTIONS</span>
+                        <div class="actor-select-wrap">
+                            <label for="sel-actor" class="actor-label">Actor:</label>
+                            <select id="sel-actor" class="actor-select font-mono">
+                                <option value="customer">customer</option>
+                                <option value="stripe_webhook">stripe_webhook</option>
+                                <option value="fulfillment_bot">fulfillment_bot</option>
+                                <option value="support_agent">support_agent</option>
+                                <option value="cron_worker">cron_worker</option>
+                            </select>
                         </div>
-                        <p class="guide-text">
-                            Intentionally trigger edge-case faults against the active order instance to prove architectural boundary enforcement.
-                        </p>
+                    </div>
 
-                        <div class="chaos-action-list">
-                            <button class="btn-chaos-item" onclick="simulateConcurrencyClash()">
-                                <div class="chaos-item-top">
-                                    <span class="chaos-badge">ADR-001</span>
-                                    <span class="chaos-code">HTTP 409 Conflict</span>
-                                </div>
-                                <span class="chaos-title">Optimistic Lock Conflict</span>
-                                <span class="chaos-desc">Passes stale expected_version to reject concurrent overwrite.</span>
-                            </button>
+                    <div class="primary-actions-row" id="primary-actions-container">
+                        <!-- Populated with clean, prominent buttons -->
+                    </div>
 
-                            <button class="btn-chaos-item" onclick="simulateIdempotentReplay()">
-                                <div class="chaos-item-top">
-                                    <span class="chaos-badge">ADR-003</span>
-                                    <span class="chaos-code">HTTP 200 Replay</span>
-                                </div>
-                                <span class="chaos-title">Idempotency Key Cache Hit</span>
-                                <span class="chaos-desc">Replays same key to prove zero double-advancing or duplicate charging.</span>
-                            </button>
-
-                            <button class="btn-chaos-item" onclick="simulateIllegalJump()">
-                                <div class="chaos-item-top">
-                                    <span class="chaos-badge">Matrix</span>
-                                    <span class="chaos-code">HTTP 409 Rejection</span>
-                                </div>
-                                <span class="chaos-title">Illegal State Jump</span>
-                                <span class="chaos-desc">Attempts illegal transition (e.g. CREATED ➔ FULFILLED) to verify static table check.</span>
-                            </button>
-
-                            <button class="btn-chaos-item" onclick="simulateExcessiveRefund()">
-                                <div class="chaos-item-top">
-                                    <span class="chaos-badge">ADR-004</span>
-                                    <span class="chaos-code">HTTP 400 Bad Request</span>
-                                </div>
-                                <span class="chaos-title">Balance Over-Refund Guard</span>
-                                <span class="chaos-desc">Attempts refund greater than total purchase amount.</span>
-                            </button>
+                    <!-- Inline Partial Refund Bar -->
+                    <div class="refund-inline-bar hidden" id="refund-inline-bar">
+                        <div class="refund-inline-inner">
+                            <span class="refund-bar-title">Partial Refund:</span>
+                            <div class="refund-chips">
+                                <button type="button" class="chip-sm" onclick="setRefundPct(0.25)">25%</button>
+                                <button type="button" class="chip-sm" onclick="setRefundPct(0.50)">50%</button>
+                                <button type="button" class="chip-sm" onclick="setRefundPct(1.00)">100%</button>
+                            </div>
+                            <input type="number" id="inp-refund-cents" class="field-refund font-mono" placeholder="Amount in cents">
+                            <button class="btn btn-warning btn-sm" onclick="confirmPartialRefund()">Apply</button>
+                            <button class="btn-cancel-text" onclick="closeRefundBar()">Cancel</button>
                         </div>
                     </div>
                 </div>
 
-            </aside>
+            </section>
 
-            <!-- ====== CENTER WORKBENCH: Interactive State Machine DAG Graph ====== -->
-            <section class="dag-canvas-panel" id="panel-dag-canvas">
-                <div class="canvas-header">
-                    <div class="canvas-title-wrap">
-                        <span class="canvas-title">Order Lifecycle DAG & Execution Flow</span>
-                        <span class="canvas-sub">Deterministic Finite Automaton (O(1) transition lookup)</span>
-                    </div>
-                    <div class="canvas-legend">
-                        <span class="legend-chip"><span class="chip-color active"></span> Active</span>
-                        <span class="legend-chip"><span class="chip-color visited"></span> Visited</span>
-                        <span class="legend-chip"><span class="chip-color terminal"></span> Terminal</span>
+            <!-- Bottom Tabs: Clean Activity Stream & Order History -->
+            <section class="tabs-section">
+                <div class="tabs-nav">
+                    <button class="tab-link active" id="tab-btn-activity" onclick="switchTab('activity')">
+                        <span>Activity Trail</span>
+                    </button>
+                    <button class="tab-link" id="tab-btn-history" onclick="switchTab('history')">
+                        <span>All Orders</span>
+                        <span class="tab-pill" id="lbl-orders-count">0</span>
+                    </button>
+                    <button class="tab-link" id="tab-btn-raw" onclick="switchTab('raw')">
+                        <span>Payload</span>
+                    </button>
+                </div>
+
+                <!-- TAB 1: Activity Trail (Clean List) -->
+                <div class="tab-pane active" id="pane-activity">
+                    <div class="timeline-list" id="timeline-list">
+                        <div class="empty-state">No events recorded.</div>
                     </div>
                 </div>
 
-                <!-- Interactive DAG SVG Canvas -->
-                <div class="dag-svg-wrapper" id="dag-svg-wrapper">
-                    <svg class="dag-svg-canvas" id="dag-canvas" width="100%" height="100%" viewBox="0 0 980 440">
-                        <defs>
-                            <!-- Connector Marker Arrow -->
-                            <marker id="arrow-head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                                <path d="M 0 1 L 9 5 L 0 9 z" fill="#334155" />
-                            </marker>
-                            <marker id="arrow-head-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                                <path d="M 0 1 L 9 5 L 0 9 z" fill="#10b981" />
-                            </marker>
-                            <marker id="arrow-head-visited" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                                <path d="M 0 1 L 9 5 L 0 9 z" fill="#06b6d4" />
-                            </marker>
-
-                            <!-- Node Background Glow Filters -->
-                            <filter id="glow-emerald" x="-20%" y="-20%" width="140%" height="140%">
-                                <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.5" />
-                            </filter>
-                        </defs>
-
-                        <!-- SVG Transition Connector Paths (Drawn dynamically / via precise curves) -->
-                        <g id="svg-connectors-group">
-                            <!-- Happy Path Bezier Lines -->
-                            <path class="dag-edge" id="edge-CREATED-PAYMENT_PENDING" d="M 130 90 L 230 90" marker-end="url(#arrow-head)" />
-                            <path class="dag-edge" id="edge-PAYMENT_PENDING-PAID" d="M 380 90 L 480 90" marker-end="url(#arrow-head)" />
-                            <path class="dag-edge" id="edge-PAID-PROCESSING" d="M 610 90 L 710 90" marker-end="url(#arrow-head)" />
-                            <path class="dag-edge" id="edge-PROCESSING-FULFILLED" d="M 840 90 L 890 90" marker-end="url(#arrow-head)" />
-
-                            <!-- Branching to Terminal States -->
-                            <!-- PAYMENT_PENDING -> EXPIRED -->
-                            <path class="dag-edge branch" id="edge-PAYMENT_PENDING-EXPIRED" d="M 305 125 C 305 180, 230 240, 230 300" marker-end="url(#arrow-head)" />
-                            <!-- PAYMENT_PENDING -> FAILED -->
-                            <path class="dag-edge branch" id="edge-PAYMENT_PENDING-FAILED" d="M 305 125 C 305 180, 390 240, 390 300" marker-end="url(#arrow-head)" />
-                            <!-- CREATED / PAYMENT_PENDING / PAID -> CANCELLED -->
-                            <path class="dag-edge branch" id="edge-to-CANCELLED" d="M 70 125 C 70 210, 70 240, 70 300" marker-end="url(#arrow-head)" />
-                            <!-- PAID / FULFILLED -> PARTIALLY_REFUNDED -->
-                            <path class="dag-edge branch" id="edge-to-PARTIALLY_REFUNDED" d="M 545 125 C 545 200, 610 240, 610 300" marker-end="url(#arrow-head)" />
-                            <!-- PARTIALLY_REFUNDED / PAID -> REFUNDED -->
-                            <path class="dag-edge branch" id="edge-to-REFUNDED" d="M 670 335 L 750 335" marker-end="url(#arrow-head)" />
-                        </g>
-
-                        <!-- DAG Nodes (Primary Happy Path Row) -->
-                        <g id="svg-nodes-primary">
-                            <!-- CREATED -->
-                            <g class="dag-node-group" id="node-CREATED" transform="translate(10, 55)" onclick="inspectStateDetails('CREATED')">
-                                <rect class="node-box" width="120" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">INITIAL</text>
-                                <text class="node-title" x="12" y="44">CREATED</text>
-                                <text class="node-meta" x="12" y="58">Order Ingested</text>
-                            </g>
-
-                            <!-- PAYMENT_PENDING -->
-                            <g class="dag-node-group" id="node-PAYMENT_PENDING" transform="translate(230, 55)" onclick="inspectStateDetails('PAYMENT_PENDING')">
-                                <rect class="node-box" width="150" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">CHECKOUT</text>
-                                <text class="node-title" x="12" y="44">PAYMENT_PENDING</text>
-                                <text class="node-meta" x="12" y="58">Gateway Webhook Wait</text>
-                            </g>
-
-                            <!-- PAID -->
-                            <g class="dag-node-group" id="node-PAID" transform="translate(480, 55)" onclick="inspectStateDetails('PAID')">
-                                <rect class="node-box" width="130" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">SETTLED</text>
-                                <text class="node-title" x="12" y="44">PAID</text>
-                                <text class="node-meta" x="12" y="58">Captured & Locked</text>
-                            </g>
-
-                            <!-- PROCESSING -->
-                            <g class="dag-node-group" id="node-PROCESSING" transform="translate(710, 55)" onclick="inspectStateDetails('PROCESSING')">
-                                <rect class="node-box" width="130" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">FULFILLMENT</text>
-                                <text class="node-title" x="12" y="44">PROCESSING</text>
-                                <text class="node-meta" x="12" y="58">Warehouse Queue</text>
-                            </g>
-
-                            <!-- FULFILLED -->
-                            <g class="dag-node-group node-terminal" id="node-FULFILLED" transform="translate(890, 55)" onclick="inspectStateDetails('FULFILLED')">
-                                <rect class="node-box" width="80" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">FINAL</text>
-                                <text class="node-title" x="12" y="44">FULFILLED</text>
-                                <text class="node-meta" x="12" y="58">Delivered</text>
-                            </g>
-                        </g>
-
-                        <!-- DAG Nodes (Branching / Exception / Terminal Row) -->
-                        <g id="svg-nodes-secondary">
-                            <!-- CANCELLED -->
-                            <g class="dag-node-group node-terminal" id="node-CANCELLED" transform="translate(10, 300)" onclick="inspectStateDetails('CANCELLED')">
-                                <rect class="node-box" width="120" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">TERMINAL</text>
-                                <text class="node-title" x="12" y="44">CANCELLED</text>
-                                <text class="node-meta" x="12" y="58">Aborted by User/Ops</text>
-                            </g>
-
-                            <!-- EXPIRED -->
-                            <g class="dag-node-group node-terminal" id="node-EXPIRED" transform="translate(170, 300)" onclick="inspectStateDetails('EXPIRED')">
-                                <rect class="node-box" width="120" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">TERMINAL (v2)</text>
-                                <text class="node-title" x="12" y="44">EXPIRED</text>
-                                <text class="node-meta" x="12" y="58">Auto Batch Timeout</text>
-                            </g>
-
-                            <!-- FAILED -->
-                            <g class="dag-node-group node-terminal" id="node-FAILED" transform="translate(330, 300)" onclick="inspectStateDetails('FAILED')">
-                                <rect class="node-box" width="120" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">TERMINAL</text>
-                                <text class="node-title" x="12" y="44">FAILED</text>
-                                <text class="node-meta" x="12" y="58">Card Declined/Error</text>
-                            </g>
-
-                            <!-- PARTIALLY_REFUNDED -->
-                            <g class="dag-node-group" id="node-PARTIALLY_REFUNDED" transform="translate(520, 300)" onclick="inspectStateDetails('PARTIALLY_REFUNDED')">
-                                <rect class="node-box" width="150" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">MULTI-TIER (v2)</text>
-                                <text class="node-title" x="12" y="44">PARTIALLY_REFUNDED</text>
-                                <text class="node-meta" x="12" y="58">Balance Remaining</text>
-                            </g>
-
-                            <!-- REFUNDED -->
-                            <g class="dag-node-group node-terminal" id="node-REFUNDED" transform="translate(750, 300)" onclick="inspectStateDetails('REFUNDED')">
-                                <rect class="node-box" width="120" height="70" rx="8" />
-                                <text class="node-tag" x="12" y="22">TERMINAL</text>
-                                <text class="node-title" x="12" y="44">REFUNDED</text>
-                                <text class="node-meta" x="12" y="58">100% Capital Returned</text>
-                            </g>
-                        </g>
-                    </svg>
-                </div>
-
-                <!-- State Inspector Drawer -->
-                <div class="state-inspector-bar" id="state-inspector-bar">
-                    <div class="inspector-summary-row">
-                        <div class="inspector-title-cluster">
-                            <span class="inspector-label">STATE INSPECTION</span>
-                            <span class="inspector-state-name font-mono" id="insp-state-name">CREATED</span>
-                        </div>
-                        <div class="inspector-rule-tag" id="insp-state-tag">Initial State</div>
-                    </div>
-                    <div class="inspector-content" id="insp-state-content">
-                        Select any state node in the DAG graph above to view its strict transition schema, authorized triggers, and rollback rules.
-                    </div>
-                </div>
-
-                <!-- Transition Matrix Collapsible Table -->
-                <div class="matrix-table-card">
-                    <div class="matrix-card-header">
-                        <div class="matrix-title-wrap">
-                            <span class="matrix-title">Deterministic State Transition Registry</span>
-                            <span class="matrix-count" id="lbl-matrix-rules-count">14 rules</span>
-                        </div>
-                        <input type="text" id="inp-search-matrix" class="matrix-search-input" placeholder="Search trigger, origin, or target..." oninput="filterMatrixRegistry()">
-                    </div>
-                    <div class="matrix-table-wrap">
-                        <table class="table-compact" id="table-matrix-rules">
+                <!-- TAB 2: All Orders (Clean Table) -->
+                <div class="tab-pane" id="pane-history">
+                    <div class="table-wrap">
+                        <table class="minimal-table">
                             <thead>
                                 <tr>
-                                    <th>ORIGIN STATE</th>
-                                    <th>TRANSITION TRIGGER</th>
-                                    <th>TARGET STATE</th>
-                                    <th>INVARIANT & POLICY</th>
+                                    <th>Order ID</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Customer</th>
+                                    <th>Updated</th>
                                 </tr>
                             </thead>
-                            <tbody id="matrix-tbody">
+                            <tbody id="orders-tbody">
                                 <!-- Populated dynamically -->
                             </tbody>
                         </table>
                     </div>
                 </div>
 
+                <!-- TAB 3: Raw JSON Payload -->
+                <div class="tab-pane" id="pane-raw">
+                    <pre class="code-view font-mono" id="raw-json">{\n  "status": "ready"\n}</pre>
+                </div>
             </section>
-
-            <!-- ====== RIGHT WORKBENCH: Event Stream & Ledger ====== -->
-            <aside class="workbench-panel" id="panel-telemetry-tabs">
-                
-                <div class="workbench-tabs">
-                    <button class="wb-tab active" id="tab-audit-events" onclick="switchRightPanelTab('audit')">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                            <polyline points="10 9 9 9 8 9"></polyline>
-                        </svg>
-                        <span>Audit Stream</span>
-                    </button>
-                    <button class="wb-tab" id="tab-order-ledger" onclick="switchRightPanelTab('ledger')">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                            <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                            <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                        </svg>
-                        <span>Ledger</span>
-                        <span class="tab-badge" id="ledger-count-badge">0</span>
-                    </button>
-                    <button class="wb-tab" id="tab-json-payload" onclick="switchRightPanelTab('json')">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="16 18 22 12 16 6"></polyline>
-                            <polyline points="8 6 2 12 8 18"></polyline>
-                        </svg>
-                        <span>JSON</span>
-                    </button>
-                </div>
-
-                <!-- TAB 1: AUDIT EVENT STREAM -->
-                <div class="panel-tab-content active" id="pane-tab-audit">
-                    <div class="stream-toolbar">
-                        <span class="stream-title" id="stream-order-label">Events for active instance</span>
-                        <button class="btn-micro" onclick="fetchOrderAuditHistory()">Sync</button>
-                    </div>
-
-                    <div class="audit-event-stream" id="audit-event-stream">
-                        <div class="empty-stream-state">
-                            <span class="empty-caption">No Events Selected</span>
-                            <span class="empty-sub">Select or spawn an order instance to stream its deterministic audit events.</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 2: ORDER DATABASE LEDGER -->
-                <div class="panel-tab-content" id="pane-tab-ledger">
-                    <div class="stream-toolbar">
-                        <div class="ledger-filter-row">
-                            <button class="filter-btn active" onclick="applyLedgerFilter('ALL')">All</button>
-                            <button class="filter-btn" onclick="applyLedgerFilter('ACTIVE')">Active</button>
-                            <button class="filter-btn" onclick="applyLedgerFilter('FULFILLED')">Fulfilled</button>
-                            <button class="filter-btn" onclick="applyLedgerFilter('REFUNDED')">Refunded</button>
-                            <button class="filter-btn" onclick="applyLedgerFilter('EXPIRED')">Expired</button>
-                        </div>
-                    </div>
-
-                    <div class="ledger-list" id="ledger-list">
-                        <!-- Populated dynamically with database rows -->
-                    </div>
-                </div>
-
-                <!-- TAB 3: JSON RAW PAYLOAD -->
-                <div class="panel-tab-content" id="pane-tab-json">
-                    <div class="stream-toolbar">
-                        <span class="stream-title">Serialized State Vector</span>
-                        <button class="btn-micro" onclick="copyJsonPayload()">Copy</button>
-                    </div>
-                    <pre class="json-code-box font-mono" id="raw-json-viewer">{\n  "status": "ready",\n  "message": "Select an order to inspect raw JSON payload"\n}</pre>
-                </div>
-
-            </aside>
 
         </main>
 
-        <!-- ================= SYSTEM STATUS TOAST CONTAINER ================= -->
+        <!-- New Order Modal -->
+        <div class="modal-backdrop hidden" id="new-order-modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <span class="modal-title">Create New Order</span>
+                    <button class="modal-close" onclick="closeNewOrderModal()">✕</button>
+                </div>
+                
+                <!-- Quick Templates -->
+                <div class="modal-presets">
+                    <button type="button" class="preset-tag" onclick="quickFillPreset('cust_sneakers', 12000)">Sneakers ($120)</button>
+                    <button type="button" class="preset-tag" onclick="quickFillPreset('cust_saas', 4900)">SaaS ($49)</button>
+                    <button type="button" class="preset-tag" onclick="quickFillPreset('cust_coffee', 850)">Coffee ($8.50)</button>
+                </div>
+
+                <form onsubmit="event.preventDefault(); submitNewOrder();">
+                    <div class="form-group">
+                        <label class="form-label" for="new-customer">Customer ID</label>
+                        <input type="text" id="new-customer" class="form-input" value="cust_demo" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group flex-2">
+                            <label class="form-label" for="new-amount">Amount (cents)</label>
+                            <input type="number" id="new-amount" class="form-input font-mono" value="12000" min="1" required>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="new-currency">Currency</label>
+                            <input type="text" id="new-currency" class="form-input font-mono" value="USD" maxlength="3" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeNewOrderModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Order</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toast Notification Stack -->
         <div class="toast-stack" id="toast-stack"></div>
 
-        <!-- ================= FOOTER DOCK ================= -->
-        <footer class="app-dock">
-            <div class="dock-left">
-                <span class="dock-status-tag">AI-SDLC Verified</span>
-                <span class="dock-meta font-mono">SQLite WAL Mode</span>
-                <span class="dock-dot">•</span>
-                <span class="dock-meta font-mono">Optimistic Lock (v2)</span>
-                <span class="dock-dot">•</span>
-                <span class="dock-meta font-mono">Idempotency Guard</span>
-            </div>
-            <div class="dock-right">
-                <a href="/docs" target="_blank" class="dock-link font-mono">OpenAPI Schema ↗</a>
-                <span class="dock-dot">•</span>
-                <a href="/health" target="_blank" class="dock-link font-mono">GET /health ↗</a>
-            </div>
+        <!-- Minimal Footer -->
+        <footer class="site-footer">
+            <span>StateFlow • AI-SDLC Reference Implementation • 23 Invariants Verified</span>
+            <a href="/docs" target="_blank" class="footer-link">API Docs ↗</a>
         </footer>
     </div>
 
-    <!-- Application Script -->
+    <!-- Minimal Script -->
     <script src="/static/app.js"></script>
 </body>
 </html>
