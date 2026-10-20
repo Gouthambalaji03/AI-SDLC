@@ -1,0 +1,42 @@
+#!/bin/sh
+# AI-SDLC Pre-Commit Policy Gate Hook
+# Automatically blocks commits if QA tests fail or architectural invariants are violated.
+
+echo ""
+echo "========================================================================"
+echo " [AI-SDLC] PRE-COMMIT POLICY GATE: Verifying Code & Invariants..."
+echo "========================================================================"
+echo ""
+
+# Find a python interpreter with pytest available
+PY_CMD=""
+for candidate in python py "python3" "/c/Users/26gou/AppData/Local/Programs/Python/Python39/python.exe" "C:/Users/26gou/AppData/Local/Programs/Python/Python39/python.exe"; do
+    if command -v "$candidate" >/dev/null 2>&1 || [ -f "$candidate" ]; then
+        if "$candidate" -m pytest --version >/dev/null 2>&1; then
+            PY_CMD="$candidate"
+            break
+        fi
+    fi
+done
+
+if [ -z "$PY_CMD" ]; then
+    PY_CMD="python"
+fi
+
+# Run AI-SDLC verify command
+"$PY_CMD" .ai-sdlc/sdlc.py verify
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    echo ""
+    echo "❌ [AI-SDLC GATE REJECTED] Commit aborted."
+    echo "   Your changes broke one or more unit tests or architectural invariants."
+    echo "   Run 'python .ai-sdlc/sdlc.py verify' to debug."
+    echo ""
+    exit 1
+fi
+
+echo ""
+echo "✅ [AI-SDLC GATE ACCEPTED] All tests and architectural invariants passed!"
+echo ""
+exit 0

@@ -1,0 +1,38 @@
+name: AI-SDLC Quality Gate & Invariant CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  verify:
+    name: Run AI-SDLC Policy Enforcement Gate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify AI-SDLC Specs & Living Documentation
+        run: |
+          python .ai-sdlc/sdlc.py status
+
+      - name: Run AI-SDLC Policy Gate (TDD & Invariant Checks)
+        run: |
+          python .ai-sdlc/sdlc.py verify

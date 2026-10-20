@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StateFlow — Order Lifecycle Dashboard</title>
+    <meta name="description" content="Interactive visual dashboard for StateFlow Order & Payment Lifecycle Engine built with AI-SDLC.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- ======= HEADER ======= -->
+    <header id="app-header">
+        <div class="header-left">
+            <div class="logo-mark">SF</div>
+            <div>
+                <h1>StateFlow</h1>
+                <p class="subtitle">Order & Payment Lifecycle Engine</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <span class="badge badge-green" id="api-status">API Connected</span>
+            <span class="badge badge-purple">AI-SDLC v2</span>
+        </div>
+    </header>
+
+    <main id="app-main">
+        <!-- ======= LEFT PANEL: Controls ======= -->
+        <section id="panel-controls" class="panel">
+            <div class="panel-header">
+                <h2>Order Simulator</h2>
+            </div>
+
+            <!-- Create Order Form -->
+            <div class="card" id="card-create">
+                <h3>Create New Order</h3>
+                <div class="form-group">
+                    <label for="inp-customer">Customer ID</label>
+                    <input type="text" id="inp-customer" placeholder="e.g. cust_alice" value="cust_demo">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="inp-amount">Amount (cents)</label>
+                        <input type="number" id="inp-amount" placeholder="e.g. 4999" value="4999" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="inp-currency">Currency</label>
+                        <input type="text" id="inp-currency" value="USD" maxlength="3">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btn-create" onclick="createOrder()">Create Order</button>
+            </div>
+
+            <!-- Active Order Info -->
+            <div class="card hidden" id="card-order-info">
+                <div class="order-header">
+                    <h3>Active Order</h3>
+                    <span class="state-badge" id="lbl-state">CREATED</span>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item"><span class="info-label">Order ID</span><span class="info-value mono" id="lbl-order-id">—</span></div>
+                    <div class="info-item"><span class="info-label">Amount</span><span class="info-value" id="lbl-amount">—</span></div>
+                    <div class="info-item"><span class="info-label">Refunded</span><span class="info-value" id="lbl-refunded">$0.00</span></div>
+                    <div class="info-item"><span class="info-label">Version</span><span class="info-value" id="lbl-version">1</span></div>
+                </div>
+            </div>
+
+            <!-- Transition Buttons -->
+            <div class="card hidden" id="card-actions">
+                <h3>Available Actions</h3>
+                <div id="action-buttons" class="action-grid">
+                    <!-- Populated dynamically -->
+                </div>
+                <!-- Partial Refund Input -->
+                <div class="form-group hidden" id="partial-refund-group" style="margin-top:12px;">
+                    <label for="inp-refund-amount">Refund Amount (cents)</label>
+                    <div class="form-row">
+                        <input type="number" id="inp-refund-amount" placeholder="e.g. 1500" min="1">
+                        <button class="btn btn-warning" onclick="executePartialRefund()">Confirm Refund</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Display -->
+            <div class="card card-error hidden" id="card-error">
+                <h3>Error</h3>
+                <pre id="error-message"></pre>
+            </div>
+        </section>
+
+        <!-- ======= CENTER PANEL: State Machine Diagram ======= -->
+        <section id="panel-diagram" class="panel">
+            <div class="panel-header">
+                <h2>State Machine</h2>
+            </div>
+            <div class="card" id="card-state-machine">
+                <div class="state-machine-grid">
+                    <div class="sm-node" id="sm-CREATED" data-state="CREATED">
+                        <div class="sm-dot"></div><span>CREATED</span>
+                    </div>
+                    <div class="sm-arrow" id="arrow-1">&#8594;</div>
+                    <div class="sm-node" id="sm-PAYMENT_PENDING" data-state="PAYMENT_PENDING">
+                        <div class="sm-dot"></div><span>PAYMENT<br>PENDING</span>
+                    </div>
+                    <div class="sm-arrow" id="arrow-2">&#8594;</div>
+                    <div class="sm-node" id="sm-PAID" data-state="PAID">
+                        <div class="sm-dot"></div><span>PAID</span>
+                    </div>
+                    <div class="sm-arrow" id="arrow-3">&#8594;</div>
+                    <div class="sm-node" id="sm-PROCESSING" data-state="PROCESSING">
+                        <div class="sm-dot"></div><span>PROCESSING</span>
+                    </div>
+                    <div class="sm-arrow" id="arrow-4">&#8594;</div>
+                    <div class="sm-node sm-terminal" id="sm-FULFILLED" data-state="FULFILLED">
+                        <div class="sm-dot"></div><span>FULFILLED</span>
+                    </div>
+                </div>
+                <!-- Secondary states row -->
+                <div class="state-machine-secondary">
+                    <div class="sm-node sm-terminal" id="sm-CANCELLED" data-state="CANCELLED">
+                        <div class="sm-dot"></div><span>CANCELLED</span>
+                    </div>
+                    <div class="sm-node sm-terminal" id="sm-FAILED" data-state="FAILED">
+                        <div class="sm-dot"></div><span>FAILED</span>
+                    </div>
+                    <div class="sm-node sm-terminal" id="sm-EXPIRED" data-state="EXPIRED">
+                        <div class="sm-dot"></div><span>EXPIRED</span>
+                    </div>
+                    <div class="sm-node" id="sm-PARTIALLY_REFUNDED" data-state="PARTIALLY_REFUNDED">
+                        <div class="sm-dot"></div><span>PARTIALLY<br>REFUNDED</span>
+                    </div>
+                    <div class="sm-node sm-terminal" id="sm-REFUNDED" data-state="REFUNDED">
+                        <div class="sm-dot"></div><span>REFUNDED</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transition Matrix Table -->
+            <div class="card" id="card-matrix">
+                <h3>Transition Matrix</h3>
+                <div class="table-wrapper">
+                    <table id="tbl-matrix">
+                        <thead>
+                            <tr><th>From State</th><th>Trigger</th><th>To State</th></tr>
+                        </thead>
+                        <tbody id="tbl-matrix-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======= RIGHT PANEL: Audit Trail ======= -->
+        <section id="panel-audit" class="panel">
+            <div class="panel-header">
+                <h2>Audit Trail</h2>
+            </div>
+            <div class="card" id="card-audit">
+                <div id="audit-timeline" class="timeline">
+                    <div class="timeline-empty">Create an order to see the audit trail here.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="app-footer">
+        <p>StateFlow &mdash; Built with AI-SDLC | 21 Automated Tests Passing | FastAPI + SQLite + Pydantic</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
