@@ -7,6 +7,7 @@ from app.models.order import (
     AuditLogResponse,
     TransitionMatrixResponse,
     ExpireStaleResponse,
+    MetricsResponse,
 )
 from app.models.state import (
     InvalidStateTransitionError,
@@ -40,12 +41,34 @@ def create_order(
 
 
 @router.get(
+    "",
+    response_model=List[OrderResponse],
+    summary="List recent orders"
+)
+def list_orders(
+    limit: int = Query(default=50, ge=1, le=100, description="Max orders to return"),
+    service: OrderService = Depends(get_order_service)
+):
+    return service.list_orders(limit=limit)
+
+
+@router.get(
+    "/stats/summary",
+    response_model=MetricsResponse,
+    summary="Retrieve aggregated order lifecycle metrics"
+)
+def get_metrics_summary(service: OrderService = Depends(get_order_service)):
+    return service.get_metrics()
+
+
+@router.get(
     "/matrix",
     response_model=TransitionMatrixResponse,
     summary="Retrieve the allowed State Transition Matrix"
 )
 def get_matrix(service: OrderService = Depends(get_order_service)):
     return service.get_transition_matrix()
+
 
 
 @router.post(

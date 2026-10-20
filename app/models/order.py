@@ -67,3 +67,13 @@ class TransitionMatrixResponse(BaseModel):
 class ExpireStaleResponse(BaseModel):
     expired_count: int
     expired_order_ids: List[str]
+
+
+class MetricsResponse(BaseModel):
+    total_orders: int
+    active_gmv_cents: int
+    fulfilled_count: int
+    stale_pending_count: int
+    refunded_cents: int
+    state_distribution: dict
+

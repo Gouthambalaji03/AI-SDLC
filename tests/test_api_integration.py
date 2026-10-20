@@ -179,3 +179,28 @@ def test_api_expire_endpoint(client):
     data = res.json()
     assert "expired_count" in data
     assert "expired_order_ids" in data
+
+
+def test_api_list_orders(client):
+    # Create an order and verify it appears in list
+    res_create = client.post("/api/v1/orders", json={"customer_id": "cust_list_test", "amount_cents": 1250})
+    oid = res_create.json()["id"]
+
+    res_list = client.get("/api/v1/orders")
+    assert res_list.status_code == 200
+    orders = res_list.json()
+    assert isinstance(orders, list)
+    assert any(o["id"] == oid for o in orders)
+
+
+def test_api_metrics_summary(client):
+    res = client.get("/api/v1/orders/stats/summary")
+    assert res.status_code == 200
+    data = res.json()
+    assert "total_orders" in data
+    assert "active_gmv_cents" in data
+    assert "fulfilled_count" in data
+    assert "stale_pending_count" in data
+    assert "refunded_cents" in data
+    assert "state_distribution" in data
+
