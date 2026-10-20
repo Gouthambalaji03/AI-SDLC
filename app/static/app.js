@@ -91,6 +91,24 @@ async function fetchDashboardState() {
 
         if (statsRes.ok) {
             const stats = await statsRes.json();
+            
+            // Populate KPI Strip
+            const kpiVol = document.getElementById('kpi-volume');
+            const kpiOrd = document.getElementById('kpi-orders');
+            const kpiSet = document.getElementById('kpi-settlement');
+            const kpiPen = document.getElementById('kpi-pending');
+
+            if (kpiVol) kpiVol.textContent = formatMoney(stats.active_gmv_cents || 0);
+            if (kpiOrd) kpiOrd.textContent = stats.total_orders || 0;
+            if (kpiPen) kpiPen.textContent = stats.stale_pending_count || 0;
+
+            if (kpiSet) {
+                const total = stats.total_orders || 0;
+                const bad = (stats.state_distribution?.CANCELLED || 0) + (stats.state_distribution?.FAILED || 0) + (stats.state_distribution?.EXPIRED || 0);
+                const rate = total > 0 ? (((total - bad) / total) * 100).toFixed(1) : '100.0';
+                kpiSet.textContent = `${rate}%`;
+            }
+
             const staleBadge = document.getElementById('stale-count');
             if (staleBadge) {
                 if (stats.stale_pending_count > 0) {

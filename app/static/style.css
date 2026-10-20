@@ -1,6 +1,6 @@
 /* ========================================================================== */
-/*  StateFlow — Minimal, Clean & Elegant Stylesheet                            */
-/*  Focus: Simplicity, Clarity, Clean Whitespace, and Zero Cognitive Clutter   */
+/*  StateFlow — Dashboard Layout Stylesheet                                    */
+/*  True Full-Width Workstation Dashboard: KPI Strip + 2-Column Workstation    */
 /* ========================================================================== */
 
 :root {
@@ -52,7 +52,7 @@ body {
 }
 
 /* ========================================================================== */
-/*  NAVBAR                                                                    */
+/*  1. NAVBAR                                                                 */
 /* ========================================================================== */
 .site-header {
     border-bottom: 1px solid var(--border-subtle);
@@ -63,9 +63,9 @@ body {
 }
 
 .header-inner {
-    max-width: 880px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 12px 20px;
+    padding: 12px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -82,6 +82,7 @@ body {
     height: 8px;
     border-radius: 50%;
     background: var(--brand-emerald);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
 }
 
 .brand-title {
@@ -119,94 +120,90 @@ body {
 }
 
 /* ========================================================================== */
-/*  BUTTONS                                                                   */
+/*  2. DASHBOARD WORKSPACE (1400px Max Width)                                 */
 /* ========================================================================== */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 7px 14px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 120ms ease;
-    text-decoration: none;
-}
-
-.btn-sm {
-    padding: 5px 10px;
-    font-size: 11px;
-}
-
-.btn-primary {
-    background: var(--brand-indigo);
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-.btn-primary:hover {
-    background: #4f46e5;
-}
-
-.btn-secondary {
-    background: var(--bg-card);
-    border-color: var(--border-subtle);
-    color: var(--text-muted);
-}
-
-.btn-secondary:hover {
-    background: var(--bg-hover);
-    color: var(--text-main);
-    border-color: var(--border-hover);
-}
-
-.btn-warning {
-    background: var(--brand-amber);
-    color: #000;
-    font-weight: 600;
-}
-
-.btn-warning:hover {
-    background: #d97706;
-}
-
-.btn-icon-subtle {
-    background: transparent;
-    border: none;
-    color: var(--text-faint);
-    cursor: pointer;
-    padding: 2px;
-    display: inline-flex;
-    align-items: center;
-}
-
-.btn-icon-subtle:hover {
-    color: var(--text-main);
-}
-
-/* ========================================================================== */
-/*  MAIN CONTENT (Max Width 880px, Centered)                                  */
-/* ========================================================================== */
-.main-content {
-    max-width: 880px;
+.dashboard-workspace {
+    max-width: 1400px;
     width: 100%;
     margin: 0 auto;
-    padding: 24px 20px 40px 20px;
+    padding: 24px 28px 36px 28px;
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Order Hero Card */
+/* KPI Overview Strip */
+.kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: border-color 120ms ease;
+}
+
+.kpi-card:hover {
+    border-color: var(--border-hover);
+}
+
+.kpi-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.kpi-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+}
+
+.text-emerald { color: var(--brand-emerald) !important; }
+
+/* 2-Column Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 1080px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .kpi-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Left & Right Panes */
+.grid-left-col, .grid-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ========================================================================== */
+/*  3. ACTIVE ORDER HERO CARD (LEFT PANE)                                     */
+/* ========================================================================== */
 .order-card {
     background: var(--bg-card);
     border: 1px solid var(--border-subtle);
     border-radius: 10px;
-    padding: 20px 24px;
+    padding: 22px 24px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -236,6 +233,20 @@ body {
 .order-id-code {
     font-size: 13px;
     font-weight: 600;
+    color: var(--text-main);
+}
+
+.btn-icon-subtle {
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-icon-subtle:hover {
     color: var(--text-main);
 }
 
@@ -275,7 +286,7 @@ body {
 }
 
 .amount-number {
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 600;
     letter-spacing: -0.02em;
     color: #fff;
@@ -291,7 +302,7 @@ body {
     font-size: 12px;
     color: var(--text-muted);
     background: var(--bg-card-subtle);
-    padding: 3px 8px;
+    padding: 4px 9px;
     border-radius: 4px;
     border: 1px solid var(--border-subtle);
 }
@@ -301,7 +312,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 8px 12px 8px;
+    padding: 16px 14px 14px 14px;
     background: var(--bg-card-subtle);
     border: 1px solid var(--border-subtle);
     border-radius: 8px;
@@ -345,7 +356,6 @@ body {
     margin: 0 4px 18px 4px;
 }
 
-/* Stepper States */
 .step-item.active .step-circle {
     border-color: var(--brand-emerald);
     background: var(--brand-emerald);
@@ -543,19 +553,21 @@ body {
 }
 
 /* ========================================================================== */
-/*  BOTTOM TABS & ACTIVITY/HISTORY                                            */
+/*  4. TABS SECTION (RIGHT PANE)                                              */
 /* ========================================================================== */
 .tabs-section {
     background: var(--bg-card);
     border: 1px solid var(--border-subtle);
     border-radius: 10px;
     overflow: hidden;
+    min-height: 480px;
 }
 
 .tabs-nav {
     display: flex;
     border-bottom: 1px solid var(--border-subtle);
     padding: 0 16px;
+    background: var(--bg-card);
 }
 
 .tab-link {
@@ -605,13 +617,15 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 460px;
+    overflow-y: auto;
 }
 
 .timeline-row {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: var(--bg-card-subtle);
     border: 1px solid var(--border-subtle);
     border-radius: 6px;
@@ -652,6 +666,7 @@ body {
 /* Minimal Table */
 .table-wrap {
     overflow-x: auto;
+    max-height: 460px;
 }
 
 .minimal-table {
@@ -667,6 +682,9 @@ body {
     font-weight: 600;
     padding: 8px 12px;
     border-bottom: 1px solid var(--border-subtle);
+    position: sticky;
+    top: 0;
+    background: var(--bg-card);
 }
 
 .minimal-table td {
@@ -697,7 +715,7 @@ body {
     padding: 12px;
     font-size: 11px;
     color: #38bdf8;
-    max-height: 240px;
+    max-height: 460px;
     overflow-y: auto;
 }
 
@@ -709,7 +727,62 @@ body {
 }
 
 /* ========================================================================== */
-/*  MODAL                                                                     */
+/*  5. BUTTONS & UTILITIES                                                    */
+/* ========================================================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 120ms ease;
+    text-decoration: none;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 11px;
+}
+
+.btn-primary {
+    background: var(--brand-indigo);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.btn-primary:hover {
+    background: #4f46e5;
+}
+
+.btn-secondary {
+    background: var(--bg-card);
+    border-color: var(--border-subtle);
+    color: var(--text-muted);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border-color: var(--border-hover);
+}
+
+.btn-warning {
+    background: var(--brand-amber);
+    color: #000;
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+}
+
+/* ========================================================================== */
+/*  6. MODAL                                                                  */
 /* ========================================================================== */
 .modal-backdrop {
     position: fixed;
@@ -815,7 +888,7 @@ body {
 }
 
 /* ========================================================================== */
-/*  TOAST STACK                                                               */
+/*  7. TOAST STACK                                                            */
 /* ========================================================================== */
 .toast-stack {
     position: fixed;
@@ -854,18 +927,21 @@ body {
 .toast-item.info .toast-dot { background: var(--brand-indigo); }
 
 /* ========================================================================== */
-/*  SITE FOOTER                                                               */
+/*  8. SITE FOOTER                                                            */
 /* ========================================================================== */
 .site-footer {
     border-top: 1px solid var(--border-subtle);
-    padding: 12px 20px;
+    background: var(--bg-page);
+}
+
+.footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 12px 28px;
     display: flex;
     justify-content: space-between;
     font-size: 11px;
     color: var(--text-faint);
-    max-width: 880px;
-    margin: 0 auto;
-    width: 100%;
 }
 
 .footer-link {
@@ -879,4 +955,23 @@ body {
 
 .hidden {
     display: none !important;
+}
+
+/* Minimal Scrollbars */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
 }

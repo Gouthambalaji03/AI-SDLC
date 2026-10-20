@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StateFlow — Minimal Order Lifecycle</title>
+    <title>StateFlow — Order Lifecycle Dashboard</title>
     <meta name="description" content="Clean, minimal order lifecycle and stateflow management dashboard.">
     
     <!-- Clean Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="layout-container">
         
-        <!-- Minimal Navbar -->
+        <!-- Dashboard Top Navbar -->
         <header class="site-header">
             <div class="header-inner">
                 <div class="header-brand">
@@ -30,6 +30,9 @@
                         <span>Auto-Expire Stale</span>
                         <span class="bubble-count hidden" id="stale-count">0</span>
                     </button>
+                    <button class="btn btn-secondary btn-sm" onclick="fetchDashboardState()" title="Refresh dashboard data">
+                        <span>Sync</span>
+                    </button>
                     <button class="btn btn-primary btn-sm" onclick="openNewOrderModal()">
                         <span>+ New Order</span>
                     </button>
@@ -37,166 +40,194 @@
             </div>
         </header>
 
-        <!-- Main Clean Workspace (Centered Max Width) -->
-        <main class="main-content">
+        <!-- Main Dashboard Workspace -->
+        <main class="dashboard-workspace">
             
-            <!-- Active Order Hero Card -->
-            <section class="order-card" id="active-order-section">
+            <!-- Dashboard KPI Metric Strip -->
+            <section class="kpi-strip">
+                <div class="kpi-card">
+                    <span class="kpi-label">ACTIVE GROSS VOLUME</span>
+                    <span class="kpi-value font-mono" id="kpi-volume">$0.00</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">TOTAL ORDERS</span>
+                    <span class="kpi-value font-mono" id="kpi-orders">0</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">SETTLEMENT CONVERSION</span>
+                    <span class="kpi-value font-mono text-emerald" id="kpi-settlement">100.0%</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">IN-FLIGHT / PENDING</span>
+                    <span class="kpi-value font-mono" id="kpi-pending">0</span>
+                </div>
+            </section>
+
+            <!-- Dashboard 2-Column Workstation Grid -->
+            <div class="dashboard-grid">
                 
-                <!-- Order Top Row: ID & Status -->
-                <div class="order-card-header">
-                    <div class="order-identity">
-                        <span class="order-id-label">ORDER</span>
-                        <span class="order-id-code font-mono" id="disp-order-id">—</span>
-                        <button class="btn-icon-subtle" onclick="copyOrderId()" title="Copy Order ID">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="order-status-wrap">
-                        <span class="version-tag font-mono" id="disp-version">v1</span>
-                        <span class="status-pill" id="disp-status">CREATED</span>
-                    </div>
-                </div>
-
-                <!-- Financial Highlight -->
-                <div class="order-amount-row">
-                    <div class="amount-main">
-                        <span class="amount-number font-mono" id="disp-amount">$0.00</span>
-                        <span class="amount-currency font-mono" id="disp-currency">USD</span>
-                    </div>
-                    <div class="amount-meta" id="disp-refund-sub">
-                        <span class="customer-tag" id="disp-customer">cust_demo</span>
-                    </div>
-                </div>
-
-                <!-- Clean Lifecycle Stepper -->
-                <div class="lifecycle-stepper" id="lifecycle-stepper">
-                    <div class="step-item" id="step-CREATED" data-step="CREATED">
-                        <div class="step-circle">1</div>
-                        <span class="step-name">Created</span>
-                    </div>
-                    <div class="step-line" id="line-1"></div>
-                    
-                    <div class="step-item" id="step-PAYMENT_PENDING" data-step="PAYMENT_PENDING">
-                        <div class="step-circle">2</div>
-                        <span class="step-name">Pending</span>
-                    </div>
-                    <div class="step-line" id="line-2"></div>
-                    
-                    <div class="step-item" id="step-PAID" data-step="PAID">
-                        <div class="step-circle">3</div>
-                        <span class="step-name">Paid</span>
-                    </div>
-                    <div class="step-line" id="line-3"></div>
-                    
-                    <div class="step-item" id="step-PROCESSING" data-step="PROCESSING">
-                        <div class="step-circle">4</div>
-                        <span class="step-name">Processing</span>
-                    </div>
-                    <div class="step-line" id="line-4"></div>
-                    
-                    <div class="step-item" id="step-FULFILLED" data-step="FULFILLED">
-                        <div class="step-circle">5</div>
-                        <span class="step-name">Fulfilled</span>
-                    </div>
-                </div>
-
-                <!-- Special State Banner (Appears if Cancelled, Expired, Refunded, Failed) -->
-                <div class="special-state-banner hidden" id="special-state-banner">
-                    <span class="banner-title" id="banner-title">Order State Notice</span>
-                    <span class="banner-desc" id="banner-desc">This order has reached a terminal exit state.</span>
-                </div>
-
-                <!-- Next Available Action Buttons -->
-                <div class="order-actions-section">
-                    <div class="actions-label-row">
-                        <span class="section-caption">AVAILABLE ACTIONS</span>
-                        <div class="actor-select-wrap">
-                            <label for="sel-actor" class="actor-label">Actor:</label>
-                            <select id="sel-actor" class="actor-select font-mono">
-                                <option value="customer">customer</option>
-                                <option value="stripe_webhook">stripe_webhook</option>
-                                <option value="fulfillment_bot">fulfillment_bot</option>
-                                <option value="support_agent">support_agent</option>
-                                <option value="cron_worker">cron_worker</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="primary-actions-row" id="primary-actions-container">
-                        <!-- Populated with clean, prominent buttons -->
-                    </div>
-
-                    <!-- Inline Partial Refund Bar -->
-                    <div class="refund-inline-bar hidden" id="refund-inline-bar">
-                        <div class="refund-inline-inner">
-                            <span class="refund-bar-title">Partial Refund:</span>
-                            <div class="refund-chips">
-                                <button type="button" class="chip-sm" onclick="setRefundPct(0.25)">25%</button>
-                                <button type="button" class="chip-sm" onclick="setRefundPct(0.50)">50%</button>
-                                <button type="button" class="chip-sm" onclick="setRefundPct(1.00)">100%</button>
+                <!-- Left Pane: Active Order Hero & Lifecycle Controller -->
+                <div class="grid-left-col">
+                    <section class="order-card" id="active-order-section">
+                        
+                        <!-- Order Top Row: ID & Status -->
+                        <div class="order-card-header">
+                            <div class="order-identity">
+                                <span class="order-id-label">ORDER</span>
+                                <span class="order-id-code font-mono" id="disp-order-id">—</span>
+                                <button class="btn-icon-subtle" onclick="copyOrderId()" title="Copy Order ID">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </button>
                             </div>
-                            <input type="number" id="inp-refund-cents" class="field-refund font-mono" placeholder="Amount in cents">
-                            <button class="btn btn-warning btn-sm" onclick="confirmPartialRefund()">Apply</button>
-                            <button class="btn-cancel-text" onclick="closeRefundBar()">Cancel</button>
+
+                            <div class="order-status-wrap">
+                                <span class="version-tag font-mono" id="disp-version">v1</span>
+                                <span class="status-pill" id="disp-status">CREATED</span>
+                            </div>
                         </div>
-                    </div>
+
+                        <!-- Financial Highlight -->
+                        <div class="order-amount-row">
+                            <div class="amount-main">
+                                <span class="amount-number font-mono" id="disp-amount">$0.00</span>
+                                <span class="amount-currency font-mono" id="disp-currency">USD</span>
+                            </div>
+                            <div class="amount-meta" id="disp-refund-sub">
+                                <span class="customer-tag" id="disp-customer">cust_demo</span>
+                            </div>
+                        </div>
+
+                        <!-- Clean Lifecycle Stepper -->
+                        <div class="lifecycle-stepper" id="lifecycle-stepper">
+                            <div class="step-item" id="step-CREATED" data-step="CREATED">
+                                <div class="step-circle">1</div>
+                                <span class="step-name">Created</span>
+                            </div>
+                            <div class="step-line" id="line-1"></div>
+                            
+                            <div class="step-item" id="step-PAYMENT_PENDING" data-step="PAYMENT_PENDING">
+                                <div class="step-circle">2</div>
+                                <span class="step-name">Pending</span>
+                            </div>
+                            <div class="step-line" id="line-2"></div>
+                            
+                            <div class="step-item" id="step-PAID" data-step="PAID">
+                                <div class="step-circle">3</div>
+                                <span class="step-name">Paid</span>
+                            </div>
+                            <div class="step-line" id="line-3"></div>
+                            
+                            <div class="step-item" id="step-PROCESSING" data-step="PROCESSING">
+                                <div class="step-circle">4</div>
+                                <span class="step-name">Processing</span>
+                            </div>
+                            <div class="step-line" id="line-4"></div>
+                            
+                            <div class="step-item" id="step-FULFILLED" data-step="FULFILLED">
+                                <div class="step-circle">5</div>
+                                <span class="step-name">Fulfilled</span>
+                            </div>
+                        </div>
+
+                        <!-- Special State Banner (Appears if Cancelled, Expired, Refunded, Failed) -->
+                        <div class="special-state-banner hidden" id="special-state-banner">
+                            <span class="banner-title" id="banner-title">Order State Notice</span>
+                            <span class="banner-desc" id="banner-desc">This order has reached a terminal exit state.</span>
+                        </div>
+
+                        <!-- Next Available Action Buttons -->
+                        <div class="order-actions-section">
+                            <div class="actions-label-row">
+                                <span class="section-caption">AVAILABLE ACTIONS</span>
+                                <div class="actor-select-wrap">
+                                    <label for="sel-actor" class="actor-label">Actor:</label>
+                                    <select id="sel-actor" class="actor-select font-mono">
+                                        <option value="customer">customer</option>
+                                        <option value="stripe_webhook">stripe_webhook</option>
+                                        <option value="fulfillment_bot">fulfillment_bot</option>
+                                        <option value="support_agent">support_agent</option>
+                                        <option value="cron_worker">cron_worker</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="primary-actions-row" id="primary-actions-container">
+                                <!-- Populated with clean, prominent buttons -->
+                            </div>
+
+                            <!-- Inline Partial Refund Bar -->
+                            <div class="refund-inline-bar hidden" id="refund-inline-bar">
+                                <div class="refund-inline-inner">
+                                    <span class="refund-bar-title">Partial Refund:</span>
+                                    <div class="refund-chips">
+                                        <button type="button" class="chip-sm" onclick="setRefundPct(0.25)">25%</button>
+                                        <button type="button" class="chip-sm" onclick="setRefundPct(0.50)">50%</button>
+                                        <button type="button" class="chip-sm" onclick="setRefundPct(1.00)">100%</button>
+                                    </div>
+                                    <input type="number" id="inp-refund-cents" class="field-refund font-mono" placeholder="Amount in cents">
+                                    <button class="btn btn-warning btn-sm" onclick="confirmPartialRefund()">Apply</button>
+                                    <button class="btn-cancel-text" onclick="closeRefundBar()">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </section>
                 </div>
 
-            </section>
+                <!-- Right Pane: Tabs (Activity Stream, Orders Ledger & Payload) -->
+                <div class="grid-right-col">
+                    <section class="tabs-section">
+                        <div class="tabs-nav">
+                            <button class="tab-link active" id="tab-btn-activity" onclick="switchTab('activity')">
+                                <span>Activity Trail</span>
+                            </button>
+                            <button class="tab-link" id="tab-btn-history" onclick="switchTab('history')">
+                                <span>All Orders</span>
+                                <span class="tab-pill" id="lbl-orders-count">0</span>
+                            </button>
+                            <button class="tab-link" id="tab-btn-raw" onclick="switchTab('raw')">
+                                <span>Payload</span>
+                            </button>
+                        </div>
 
-            <!-- Bottom Tabs: Clean Activity Stream & Order History -->
-            <section class="tabs-section">
-                <div class="tabs-nav">
-                    <button class="tab-link active" id="tab-btn-activity" onclick="switchTab('activity')">
-                        <span>Activity Trail</span>
-                    </button>
-                    <button class="tab-link" id="tab-btn-history" onclick="switchTab('history')">
-                        <span>All Orders</span>
-                        <span class="tab-pill" id="lbl-orders-count">0</span>
-                    </button>
-                    <button class="tab-link" id="tab-btn-raw" onclick="switchTab('raw')">
-                        <span>Payload</span>
-                    </button>
+                        <!-- TAB 1: Activity Trail (Clean List) -->
+                        <div class="tab-pane active" id="pane-activity">
+                            <div class="timeline-list" id="timeline-list">
+                                <div class="empty-state">No events recorded.</div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: All Orders (Clean Table) -->
+                        <div class="tab-pane" id="pane-history">
+                            <div class="table-wrap">
+                                <table class="minimal-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Status</th>
+                                            <th>Amount</th>
+                                            <th>Customer</th>
+                                            <th>Updated</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orders-tbody">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: Raw JSON Payload -->
+                        <div class="tab-pane" id="pane-raw">
+                            <pre class="code-view font-mono" id="raw-json">{\n  "status": "ready"\n}</pre>
+                        </div>
+                    </section>
                 </div>
 
-                <!-- TAB 1: Activity Trail (Clean List) -->
-                <div class="tab-pane active" id="pane-activity">
-                    <div class="timeline-list" id="timeline-list">
-                        <div class="empty-state">No events recorded.</div>
-                    </div>
-                </div>
-
-                <!-- TAB 2: All Orders (Clean Table) -->
-                <div class="tab-pane" id="pane-history">
-                    <div class="table-wrap">
-                        <table class="minimal-table">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Status</th>
-                                    <th>Amount</th>
-                                    <th>Customer</th>
-                                    <th>Updated</th>
-                                </tr>
-                            </thead>
-                            <tbody id="orders-tbody">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TAB 3: Raw JSON Payload -->
-                <div class="tab-pane" id="pane-raw">
-                    <pre class="code-view font-mono" id="raw-json">{\n  "status": "ready"\n}</pre>
-                </div>
-            </section>
-
+            </div>
         </main>
 
         <!-- New Order Modal -->
@@ -244,8 +275,10 @@
 
         <!-- Minimal Footer -->
         <footer class="site-footer">
-            <span>StateFlow • AI-SDLC Reference Implementation • 23 Invariants Verified</span>
-            <a href="/docs" target="_blank" class="footer-link">API Docs ↗</a>
+            <div class="footer-inner">
+                <span>StateFlow • AI-SDLC Reference Implementation • 23 Invariants Verified</span>
+                <a href="/docs" target="_blank" class="footer-link">API Docs ↗</a>
+            </div>
         </footer>
     </div>
 
