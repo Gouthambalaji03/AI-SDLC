@@ -54,6 +54,12 @@ class Database:
             );
             """)
 
+            # Auto-migration for existing SQLite database files
+            cursor = conn.execute("PRAGMA table_info(orders);")
+            existing_cols = {row["name"] if isinstance(row, sqlite3.Row) else row[1] for row in cursor.fetchall()}
+            if "refunded_cents" not in existing_cols:
+                conn.execute("ALTER TABLE orders ADD COLUMN refunded_cents INTEGER NOT NULL DEFAULT 0;")
+
     def create_order(self, order_id: str, customer_id: str, amount_cents: int, currency: str, initial_state: str) -> Dict[str, Any]:
         now = datetime.now(timezone.utc).isoformat()
         with self._get_connection() as conn:
@@ -181,3 +187,37 @@ class Database:
                 (cutoff_iso,)
             )
             return [dict(row) for row in cursor.fetchall()]
+
+    def list_orders(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """List recent orders ordered by updated_at descending."""
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT * FROM orders ORDER BY updated_at DESC LIMIT ?",
+                (limit,)
+            )
+            return [dict(row) for row in cursor.fetchall()]
+
+    def get_metrics(self) -> Dict[str, Any]:
+        """Aggregate telemetry metrics across orders."""
+        with self._get_connection() as conn:
+            total_orders = conn.execute("SELECT COUNT(*) FROM orders").fetchone()[0] or 0
+            active_gmv = conn.execute(
+                "SELECT SUM(amount_cents) FROM orders WHERE current_state NOT IN ('CANCELLED', 'FAILED', 'EXPIRED')"
+            ).fetchone()[0] or 0
+            fulfilled = conn.execute("SELECT COUNT(*) FROM orders WHERE current_state = 'FULFILLED'").fetchone()[0] or 0
+            stale_pending = conn.execute("SELECT COUNT(*) FROM orders WHERE current_state = 'PAYMENT_PENDING'").fetchone()[0] or 0
+            refunded = conn.execute("SELECT SUM(refunded_cents) FROM orders").fetchone()[0] or 0
+
+            # State distribution
+            cursor = conn.execute("SELECT current_state, COUNT(*) as cnt FROM orders GROUP BY current_state")
+            state_dist = {row["current_state"]: row["cnt"] for row in cursor.fetchall()}
+
+            return {
+                "total_orders": total_orders,
+                "active_gmv_cents": active_gmv,
+                "fulfilled_count": fulfilled,
+                "stale_pending_count": stale_pending,
+                "refunded_cents": refunded,
+                "state_distribution": state_dist,
+            }
+

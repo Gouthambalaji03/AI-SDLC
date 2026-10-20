@@ -20,8 +20,10 @@ from app.models.order import (
     StateTransitionRule,
     TransitionMatrixResponse,
     ExpireStaleResponse,
+    MetricsResponse,
 )
 from app.storage.db import Database
+
 
 
 class OrderService:
@@ -205,3 +207,12 @@ class OrderService:
             transitions=rules,
             terminal_states=list(TERMINAL_STATES)
         )
+
+    def list_orders(self, limit: int = 50) -> List[OrderResponse]:
+        rows = self.db.list_orders(limit=limit)
+        return [OrderResponse(**r) for r in rows]
+
+    def get_metrics(self) -> MetricsResponse:
+        metrics = self.db.get_metrics()
+        return MetricsResponse(**metrics)
+
